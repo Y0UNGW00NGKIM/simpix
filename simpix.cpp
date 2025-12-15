@@ -1,10 +1,5 @@
-// simple example of using ROOT libraries in a C++ program with graphics
-// and use of TASImage class
-
 #include "TROOT.h"
-#include "TCanvas.h"
 #include "TASImage.h"
-#include "TApplication.h"
 
 #include <getopt.h>
 #include <assert.h>
@@ -46,16 +41,15 @@ static inline int clamp_int(int v, int lo, int hi) {
 
 static void print_usage() {
     cout << "Usage:\n";
-    cout << "  ./simpix -s <source_image> -t <target_image> [-o out.png] [-p out.pdf]\n";
+    cout << "  ./simpix -s <source_image> -t <target_image> [-o out.png]\n";
     cout << "          [--moves N] [--melt M] [--t_start T0] [--t_end T1] [--alpha A]\n";
-    cout << "          [--radius R] [--seed S] [--save_every K] [--log_every L] [--gui]\n";
+    cout << "          [--radius R] [--seed S] [--save_every K] [--log_every L]\n";
 }
 
 int main(int argc, char **argv) {
     TString fsrc;
     TString ftgt;
     TString fout = "out.png";
-    TString fout_pdf = "out.pdf";
 
     long long n_moves = 20000000;
     long long n_melt = 0;
@@ -66,13 +60,11 @@ int main(int argc, char **argv) {
     unsigned long long seed = 0;
     long long save_every = 1000000;
     long long log_every = 1000000;
-    bool run_gui = false;
 
     static struct option long_options[] = {
         {"source", required_argument, 0, 's'},
         {"target", required_argument, 0, 't'},
         {"out", required_argument, 0, 'o'},
-        {"pdf", required_argument, 0, 'p'},
         {"moves", required_argument, 0, 'n'},
         {"melt", required_argument, 0, 'm'},
         {"t_start", required_argument, 0, 'T'},
@@ -82,22 +74,19 @@ int main(int argc, char **argv) {
         {"seed", required_argument, 0, 'S'},
         {"save_every", required_argument, 0, 'v'},
         {"log_every", required_argument, 0, 'l'},
-        {"gui", no_argument, 0, 'g'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
 
     int opt;
     int long_index = 0;
-    while ((opt = getopt_long(argc, argv, "s:t:o:p:n:m:T:E:a:r:S:v:l:gh", long_options, &long_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "s:t:o:n:m:T:E:a:r:S:v:l:h", long_options, &long_index)) != -1) {
         if (opt == 's') {
             fsrc = optarg;
         } else if (opt == 't') {
             ftgt = optarg;
         } else if (opt == 'o') {
             fout = optarg;
-        } else if (opt == 'p') {
-            fout_pdf = optarg;
         } else if (opt == 'n') {
             n_moves = atoll(optarg);
         } else if (opt == 'm') {
@@ -116,8 +105,6 @@ int main(int argc, char **argv) {
             save_every = atoll(optarg);
         } else if (opt == 'l') {
             log_every = atoll(optarg);
-        } else if (opt == 'g') {
-            run_gui = true;
         } else if (opt == 'h') {
             print_usage();
             return 0;
@@ -132,15 +119,10 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if (!run_gui) {
-        gROOT->SetBatch(kTRUE);
-    }
+    gROOT->SetBatch(kTRUE);
 
     cout << "Reading images: source= " << fsrc << " target= " << ftgt << endl;
     cout << "Output image= " << fout << endl;
-    cout << "Output pdf= " << fout_pdf << endl;
-
-    TApplication theApp("App", &argc, argv);
 
     TASImage *src = new TASImage(fsrc.Data());
     TASImage *tgt = new TASImage(ftgt.Data());
@@ -311,30 +293,12 @@ int main(int argc, char **argv) {
 
     out->WriteImage(fout.Data());
 
-    TCanvas *c1 = new TCanvas("c1", "images", 1000, 800);
-    c1->Divide(2, 2);
-
-    c1->cd(1);
-    src->Draw("X");
-    c1->cd(2);
-    tgt->Draw("X");
-    c1->cd(3);
-    out->Draw("X");
-    c1->cd(4);
-
-    c1->Print(fout_pdf.Data());
-
     auto t1 = chrono::high_resolution_clock::now();
     double dt = chrono::duration<double>(t1 - t0).count();
 
     cout << "initial_energy " << initial_energy << endl;
     cout << "best_energy " << best_energy << endl;
     cout << "time_s " << dt << endl;
-
-    if (run_gui) {
-        cout << "Press ^c to exit" << endl;
-        theApp.Run();
-    }
 
     return 0;
 }
