@@ -6,9 +6,11 @@ LIBS       = $(ROOTLIBS) -lASImage
 GLIBS      = $(ROOTGLIBS)
 GXX	   = g++ -Wall -O3
 
+simpix: simpix.cpp
+	$(GXX) -o simpix simpix.cpp $(ROOTCFLAGS) $(LIBS) $(ROOTGLIBS)
+
 simpix_start:  simpix_start.cpp
 	$(GXX) -o simpix_start simpix_start.cpp $(ROOTCFLAGS) $(LIBS) $(ROOTGLIBS)
 
-
 clean:
-	rm -f simpix_start out.png
+	rm -f simpix simpix_start out.png out.pdf collage.png
